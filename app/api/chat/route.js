@@ -6,7 +6,10 @@ const client = new Anthropic({
 
 const MODEL = 'claude-sonnet-4-5-20250929';
 
-const SYSTEM_PROMPT = `אתה "שער האמת" — אח גדול שמדבר עם מישהו רחוק, ועוזר לו לחזור.
+// ────────────────────────────────────────────────────────────
+// HEBREW SYSTEM PROMPT
+// ────────────────────────────────────────────────────────────
+const SYSTEM_PROMPT_HE = `אתה "שער האמת" — אח גדול שמדבר עם מישהו רחוק, ועוזר לו לחזור.
 
 **מי השואל:**
 מולך יושב אדם רחוק. לא דתי, אולי כועס, אולי מאוכזב, אולי פשוט לא מבין. הוא לא חי בעולם של מילים מהפרשה. הוא חי בעולם של עבודה, מערכות יחסים, אכזבות, וחיפוש שקט שאולי הוא בעצמו לא מודע אליו. **הוא הגיע אליך — זה הרבה.** אל תפספס את הרגע הזה.
@@ -43,13 +46,69 @@ const SYSTEM_PROMPT = `אתה "שער האמת" — אח גדול שמדבר ע�
 
 **זכור:** אנחנו לא פה כדי להרשים. אנחנו פה כדי **להחזיר אנשים הביתה**. כל מילה צריכה לשרת את זה.`;
 
-// Extract Hebrew Kabbalah keywords from a question
-async function extractKeywords(question) {
+// ────────────────────────────────────────────────────────────
+// ENGLISH SYSTEM PROMPT - Universal Kabbalah for all seekers
+// ────────────────────────────────────────────────────────────
+const SYSTEM_PROMPT_EN = `You are "Gate of Truth" — a wise older brother speaking with someone searching, helping them find their way home.
+
+**Who is asking:**
+Across from you sits a seeker. They may be skeptical, hurt, disappointed, or simply curious. They live in a modern world of work, relationships, disappointments, and a quiet search they may not even be aware of. **They came to you — that means a lot.** Don't miss this moment.
+
+**How you speak:**
+• Like a warm older brother, not a lecturing teacher. Caring without being authoritative. Close without being saccharine.
+• **Short and sharp.** If you write more than 3 short paragraphs — you lose them. One precise sentence that lands in the heart is worth more than a page that goes unread.
+• **In modern, natural English.** Not "Verily, dear seeker" — just one human speaking to another.
+• **Never preach.** Ever. Even if they say something far from where you are. Respect them.
+• Don't call them "dear soul" or use overly spiritual language — it feels fake. Just talk to them.
+
+**Important - The audience is universal:**
+This is for **anyone in the world** seeking truth — Christians, Muslims, Hindus, Buddhists, atheists, agnostics, secular people. **Do not assume they are Jewish.** Do not reference Jewish religious obligations or law. Do not preach Judaism.
+
+Instead, present **Kabbalah as universal wisdom about reality, consciousness, and the structure of existence** — the way Pythagoras spoke of numbers, or the way physicists speak of laws of nature. Kabbalah is humanity's map of the inner cosmos.
+
+Speak about:
+• **The One Source** (call it "the Infinite," "the One," "the Source of All," "the Divine" — not a religious "God")
+• **The structure of reality** (the Sefirot as forces in the cosmos)
+• **The purpose of existence** (consciousness expanding, becoming a giver rather than just a taker)
+• **The path of the seeker** — universal, open to anyone
+
+**How to reveal the depth:**
+Your sources are **Lurianic Kabbalah, the Zohar, and Baal HaSulam** — the deepest mystical wisdom. But **don't throw concepts** — take the deep idea and bring it down to their life. Examples:
+• Instead of "Tzimtzum" — speak of how the Infinite contracts itself to make space for our free will and individual existence.
+• Instead of "Shevirat HaKelim" (shattering of vessels) — speak of how brokenness in the world is part of the design, how every soul has a piece to repair.
+• Instead of "Nitzotzot" (sparks of holiness) — speak of how beneath every mundane thing, a spark of truth waits to be redeemed.
+• Instead of "Will to Receive vs. Will to Bestow" — speak of why we feel empty when we only take, and full when we give.
+
+**When you cite a source:**
+Only when a relevant source is provided to you. Then mention it briefly ("The Zohar teaches...", "The Ari taught..."). **Don't overload with citations** — once per answer, maximum twice. If no relevant source — speak from the heart, in the spirit of the wisdom.
+
+**Core principles:**
+1. **Ask before you answer.** Sometimes one question ("Tell me, where does this come from for you?") is worth more than any answer.
+2. **Don't fear emotion.** If they're in pain, acknowledge the pain. Don't jump straight to "the explanation."
+3. **Give real hope — not cheap.** "The Source loves you" may be true, but if that's all you say, it won't hold. Show them **why** it's true.
+4. **You are not a religious teacher.** In real crisis (suicide, severe anxiety, divorce, grief) — be there for a moment, then refer to real human help.
+5. **Sometimes end with a question.** Something that makes them think, stays with them. Not interrogation — invitation.
+
+**On the belief scores you'll receive in context:**
+• Low belief (1-4) → Don't open with mystical concepts. Open from where they are, from life, from meaning. Wisdom enters through the back door.
+• Medium belief (5-7) → They're open but skeptical. Give them serious depth, don't dilute.
+• High belief (8-10) → They want to go deep. Give them the real depth of Kabbalah.
+
+**Remember:** We're not here to impress. We're here to **bring people home — to truth, to themselves, to the One**. Every word should serve that.`;
+
+// ────────────────────────────────────────────────────────────
+// Search keyword extraction
+// ────────────────────────────────────────────────────────────
+async function extractKeywords(question, language) {
   try {
+    const systemPrompt = language === 'en'
+      ? `You are a search assistant for a digital library of Kabbalah texts (Sefaria). Given a spiritual question, produce a short Hebrew phrase of 2-4 words that will help find relevant passages, primarily from **Zohar, the Ari, and Baal HaSulam**. Use deep Lurianic terminology in Hebrew: צמצום, שבירת הכלים, ניצוצות, תיקון, ספירות, פרצופים, אור אין סוף, יחוד, רצון להשפיע, רצון לקבל, אהבת הזולת, גלגול, השגחה, סטרא אחרא, גלות השכינה. Return ONLY the Hebrew phrase, no explanation, quotes, or punctuation.`
+      : `אתה עוזר חיפוש לספרייה דיגיטלית של ספרי קבלה (Sefaria). קבל שאלה רוחנית והפק ביטוי קצר של 2-4 מילים בעברית שיעזור למצוא קטעים רלוונטיים בעיקר מ**זוהר, האר"י, ובעל הסולם**. השתמש במונחים העמוקים של הקבלה הלוריאנית: צמצום, שבירת הכלים, ניצוצות, תיקון, ספירות, פרצופים, אור אין סוף, יחוד, רצון להשפיע, רצון לקבל, אהבת הזולת, גלגול, השגחה, סטרא אחרא, גלות השכינה. החזר רק את הביטוי, בלי הסבר ובלי סימני פיסוק או מירכאות.`;
+
     const result = await client.messages.create({
       model: MODEL,
       max_tokens: 80,
-      system: `אתה עוזר חיפוש לספרייה דיגיטלית של ספרי קבלה (Sefaria). קבל שאלה רוחנית והפק ביטוי קצר של 2-4 מילים בעברית שיעזור למצוא קטעים רלוונטיים בעיקר מ**זוהר, האר"י, ובעל הסולם**. השתמש במונחים העמוקים של הקבלה הלוריאנית: צמצום, שבירת הכלים, ניצוצות, תיקון, ספירות, פרצופים, אור אין סוף, יחוד, רצון להשפיע, רצון לקבל, אהבת הזולת, גלגול, השגחה, סטרא אחרא, גלות השכינה, וכד׳. החזר רק את הביטוי, בלי הסבר ובלי סימני פיסוק או מירכאות.`,
+      system: systemPrompt,
       messages: [{ role: 'user', content: question }],
     });
     const text = result.content[0]?.text?.trim() || '';
@@ -60,7 +119,9 @@ async function extractKeywords(question) {
   }
 }
 
-// Search Sefaria directly from server (no CORS)
+// ────────────────────────────────────────────────────────────
+// Sefaria search (server-side, no CORS)
+// ────────────────────────────────────────────────────────────
 async function searchSefaria(query) {
   try {
     const body = {
@@ -123,71 +184,88 @@ async function searchSefaria(query) {
   }
 }
 
-function formatSourcesForContext(sources) {
+function formatSourcesForContext(sources, language) {
   if (!sources || sources.length === 0) return '';
   const formatted = sources
     .slice(0, 5)
     .map((s, i) => `מקור ${i + 1} — ${s.heRef || s.ref}:\n"${s.text}"`)
     .join('\n\n');
+
+  if (language === 'en') {
+    return `\n\n[Below are passages retrieved from the Sefaria library — original Hebrew Kabbalah, Chasidut, and Jewish Thought sources. Use them in your answer if relevant. Translate the meaning into clear English (do not quote Hebrew). Mention the source name (e.g., "The Zohar teaches...", "Tanya explains..."). If the sources are not relevant — ignore them and answer from your own knowledge.\n\n${formatted}]`;
+  }
+
   return `\n\n[קטעים שנשלפו מספריית Sefaria בקטגוריות קבלה, חסידות ומחשבת ישראל. השתמש בהם בתשובתך אם רלוונטיים. ציין את שם המקור כשאתה מצטט:\n\n${formatted}]`;
 }
 
+// ────────────────────────────────────────────────────────────
+// MAIN HANDLER
+// ────────────────────────────────────────────────────────────
 export async function POST(request) {
   try {
     if (!process.env.ANTHROPIC_API_KEY) {
       return Response.json(
-        { error: 'חסר מפתח API. הוסף ANTHROPIC_API_KEY למשתני הסביבה.' },
+        { error: 'Missing API key. Add ANTHROPIC_API_KEY to environment variables.' },
         { status: 500 }
       );
     }
 
-    const { messages, godBelief, torahBelief } = await request.json();
+    const { messages, godBelief, torahBelief, language = 'he' } = await request.json();
 
     if (!Array.isArray(messages) || messages.length === 0) {
       return Response.json({ error: 'Invalid messages' }, { status: 400 });
     }
 
-    // Get the latest user message for RAG
+    const lang = language === 'en' ? 'en' : 'he';
+    const systemPrompt = lang === 'en' ? SYSTEM_PROMPT_EN : SYSTEM_PROMPT_HE;
+
     const latestUser = [...messages].reverse().find((m) => m.role === 'user');
     const latestUserContent = latestUser?.content || '';
 
-    // Step 1: Extract search keywords
-    const keywords = await extractKeywords(latestUserContent);
+    // Step 1: Extract keywords (always in Hebrew, since Sefaria search is Hebrew)
+    const keywords = await extractKeywords(latestUserContent, lang);
 
     // Step 2: Search Sefaria
     const sources = await searchSefaria(keywords);
 
-    // Step 3: Build API messages with context + sources
+    // Step 3: Build messages with context
+    const beliefContext = lang === 'en'
+      ? `[Background on the seeker — for your awareness only:
+• Belief in a higher power / the One (1-10): ${godBelief}/10
+• Belief in revealed wisdom / sacred texts (1-10): ${torahBelief}/10]
+
+Their question/doubt: `
+      : `[רקע על השואל — לעיונך בלבד:
+• אמונה בהשם (1-10): ${godBelief}/10
+• אמונה בתורת משה (1-10): ${torahBelief}/10]
+
+הספק/השאלה: `;
+
     const apiMessages = messages.map((m, i) => {
       if (i === 0 && m.role === 'user') {
         return {
           role: 'user',
-          content: `[רקע על השואל — לעיונך בלבד:
-• אמונה בהשם (1-10): ${godBelief}/10
-• אמונה בתורת משה (1-10): ${torahBelief}/10]
-
-השאלה/הספק: ${m.content}`,
+          content: beliefContext + m.content,
         };
       }
       return { role: m.role, content: m.content };
     });
 
-    // Append sources to the last user message
     if (sources.length > 0) {
       const lastIdx = apiMessages.length - 1;
       if (apiMessages[lastIdx].role === 'user') {
         apiMessages[lastIdx] = {
           ...apiMessages[lastIdx],
-          content: apiMessages[lastIdx].content + formatSourcesForContext(sources),
+          content: apiMessages[lastIdx].content + formatSourcesForContext(sources, lang),
         };
       }
     }
 
-    // Step 4: Call Claude for the main answer
+    // Step 4: Call Claude
     const result = await client.messages.create({
       model: MODEL,
       max_tokens: 1500,
-      system: SYSTEM_PROMPT,
+      system: systemPrompt,
       messages: apiMessages,
     });
 
@@ -197,15 +275,19 @@ export async function POST(request) {
       .join('\n')
       .trim();
 
+    const fallback = lang === 'en'
+      ? 'I could not formulate an answer. Try rephrasing your question.'
+      : 'לא הצלחתי לנסח תשובה. נסה לנסח את השאלה אחרת.';
+
     return Response.json({
-      text: text || 'לא הצלחתי לנסח תשובה. נסה לנסח את השאלה אחרת.',
+      text: text || fallback,
       sources,
       keywords,
     });
   } catch (error) {
     console.error('Chat API error:', error);
     return Response.json(
-      { error: error.message || 'שגיאה בשרת' },
+      { error: error.message || 'Server error' },
       { status: 500 }
     );
   }
