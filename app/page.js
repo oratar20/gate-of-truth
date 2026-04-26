@@ -3,7 +3,96 @@
 import { useState, useEffect, useRef } from 'react';
 import TreeOfLife from './components/TreeOfLife';
 
+// ────────────────────────────────────────────────────────────
+// TRANSLATIONS - all UI text in both languages
+// ────────────────────────────────────────────────────────────
+const t = {
+  he: {
+    title: 'שַׁעַר הָאֱמֶת',
+    subtitle: 'GATE OF TRUTH',
+    welcomeText1: 'מקום להניח בו את השאלות, את הספקות,',
+    welcomeText2: 'ואת מה שמכביד על הלב.',
+    welcomeText3: 'מענה מתוך עומק חכמת הקבלה — הזוהר, האר״י הקדוש,',
+    welcomeText4: 'ותורת בעל הסולם.',
+    enter: 'היכנס',
+    disclaimer: 'כלי לחיזוק ולעיון. אינו מחליף רב חי או ייעוץ מקצועי.',
+    stage1of3: '׀ שלב ראשון מתוך שלושה ׀',
+    stage2of3: '׀ שלב שני מתוך שלושה ׀',
+    stage3of3: '׀ שלב שלישי מתוך שלושה ׀',
+    q1: 'עד כמה אתה מאמין בהשם?',
+    q1Right: '1 — לא מאמין',
+    q1Left: '10 — אמונה מלאה',
+    q2: 'עד כמה אתה מאמין בתורת משה?',
+    q2Right: '1 — לא מאמין',
+    q2Left: '10 — ניתנה למשה בסיני',
+    q3: 'מה הספק העיקרי שלך?',
+    q3Sub1: 'כתוב בחופשיות את מה שמכביד עליך — שאלה, קושיה, חוויה,',
+    q3Sub2: 'או כל דבר שמרחיק אותך מהאמונה.',
+    q3Placeholder: 'לדוגמה: אם יש אלוהים טוב, איך הוא נותן לרע לקרות?',
+    back: '← חזור',
+    continue: 'המשך ←',
+    openGate: 'פתח את השער ←',
+    chatHeader: 'שַׁעַר הָאֱמֶת',
+    restart: 'התחל מחדש',
+    inputPlaceholder: 'המשך לשאול, להעמיק, או לשתף...',
+    send: 'שלח',
+    error: 'שגיאה',
+    name: 'שער האמת',
+    statusListening: 'האורות מתקבצים...',
+    statusThinking: 'מקשיב ושואב מהמקור...',
+    errorMsg: 'אירעה שגיאה. נסה שוב בעוד רגע.',
+    sourcesShow: 'הצג',
+    sourcesHide: 'הסתר',
+    sourcesLabel: 'מקורות מ-Sefaria',
+    sourcesSearch: '(חיפוש:',
+    closeBracket: ')',
+    languageOther: 'EN',
+  },
+  en: {
+    title: 'Gate of Truth',
+    subtitle: 'שַׁעַר הָאֱמֶת',
+    welcomeText1: 'A place to lay down your questions, your doubts,',
+    welcomeText2: 'and what weighs on the heart.',
+    welcomeText3: 'Answers from the depth of Kabbalah — the Zohar, the holy Ari,',
+    welcomeText4: 'and the teachings of Baal HaSulam.',
+    enter: 'Enter',
+    disclaimer: 'A tool for reflection and inspiration. Not a substitute for personal guidance or professional counsel.',
+    stage1of3: '׀ Step 1 of 3 ׀',
+    stage2of3: '׀ Step 2 of 3 ׀',
+    stage3of3: '׀ Step 3 of 3 ׀',
+    q1: 'How much do you believe in a higher power?',
+    q1Right: '1 — No belief',
+    q1Left: '10 — Full faith',
+    q2: 'How much do you believe in revealed wisdom and sacred texts?',
+    q2Right: '1 — No belief',
+    q2Left: '10 — Deep belief',
+    q3: 'What is your main doubt or question?',
+    q3Sub1: 'Write freely about what weighs on you — a question, a struggle,',
+    q3Sub2: 'an experience, or anything that distances you from faith.',
+    q3Placeholder: 'For example: If there is a loving Source, why does suffering exist?',
+    back: '← Back',
+    continue: 'Continue →',
+    openGate: 'Open the Gate →',
+    chatHeader: 'Gate of Truth',
+    restart: 'Start over',
+    inputPlaceholder: 'Continue asking, going deeper, or sharing...',
+    send: 'Send',
+    error: 'Error',
+    name: 'Gate of Truth',
+    statusListening: 'The lights are gathering...',
+    statusThinking: 'Listening and drawing from the source...',
+    errorMsg: 'An error occurred. Please try again in a moment.',
+    sourcesShow: 'Show',
+    sourcesHide: 'Hide',
+    sourcesLabel: 'sources from Sefaria',
+    sourcesSearch: '(search:',
+    closeBracket: ')',
+    languageOther: 'עב',
+  },
+};
+
 export default function Home() {
+  const [language, setLanguage] = useState('he');
   const [stage, setStage] = useState('welcome');
   const [godBelief, setGodBelief] = useState(5);
   const [torahBelief, setTorahBelief] = useState(5);
@@ -15,6 +104,10 @@ export default function Home() {
   const [expandedSources, setExpandedSources] = useState({});
   const [errorDetails, setErrorDetails] = useState('');
   const messagesEndRef = useRef(null);
+
+  // Active translation
+  const tx = t[language];
+  const isRTL = language === 'he';
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -35,8 +128,10 @@ export default function Home() {
     error: '#d97757',
   };
 
-  const fontTitle = '"Frank Ruhl Libre", "David Libre", "Times New Roman", serif';
-  const fontBody = '"Frank Ruhl Libre", "David Libre", "Times New Roman", serif';
+  const fontTitle = '"Frank Ruhl Libre", "David Libre", "Cormorant Garamond", "Times New Roman", serif';
+  const fontBody = isRTL
+    ? '"Frank Ruhl Libre", "David Libre", "Times New Roman", serif'
+    : '"Cormorant Garamond", "Frank Ruhl Libre", "Times New Roman", serif';
 
   const treeIntensity = stage === 'welcome' ? 1 : stage === 'chat' ? 0.5 : 0.7;
 
@@ -48,6 +143,7 @@ export default function Home() {
         messages: allMessages,
         godBelief,
         torahBelief,
+        language,
       }),
     });
 
@@ -65,23 +161,17 @@ export default function Home() {
     if (!mainDoubt.trim()) return;
     setStage('chat');
     setLoading(true);
-    setSearchStatus('האורות מתקבצים...');
+    setSearchStatus(tx.statusListening);
     setErrorDetails('');
     const initial = [{ role: 'user', content: mainDoubt }];
     setMessages(initial);
     try {
       const data = await sendToBackend(initial);
       setSearchStatus('');
-      setMessages([
-        ...initial,
-        { role: 'assistant', content: data.text, sources: data.sources, keywords: data.keywords },
-      ]);
+      setMessages([...initial, { role: 'assistant', content: data.text, sources: data.sources, keywords: data.keywords }]);
     } catch (err) {
-      setErrorDetails(err.message || 'שגיאה לא ידועה');
-      setMessages([
-        ...initial,
-        { role: 'assistant', content: 'אירעה שגיאה. נסה שוב בעוד רגע.', isError: true },
-      ]);
+      setErrorDetails(err.message || 'Unknown error');
+      setMessages([...initial, { role: 'assistant', content: tx.errorMsg, isError: true }]);
     }
     setSearchStatus('');
     setLoading(false);
@@ -94,20 +184,14 @@ export default function Home() {
     setMessages(newMessages);
     setInput('');
     setLoading(true);
-    setSearchStatus('מקשיב ושואב מהמקור...');
+    setSearchStatus(tx.statusThinking);
     setErrorDetails('');
     try {
       const data = await sendToBackend(newMessages);
-      setMessages([
-        ...newMessages,
-        { role: 'assistant', content: data.text, sources: data.sources, keywords: data.keywords },
-      ]);
+      setMessages([...newMessages, { role: 'assistant', content: data.text, sources: data.sources, keywords: data.keywords }]);
     } catch (err) {
-      setErrorDetails(err.message || 'שגיאה לא ידועה');
-      setMessages([
-        ...newMessages,
-        { role: 'assistant', content: 'אירעה שגיאה. נסה שוב בעוד רגע.', isError: true },
-      ]);
+      setErrorDetails(err.message || 'Unknown error');
+      setMessages([...newMessages, { role: 'assistant', content: tx.errorMsg, isError: true }]);
     }
     setSearchStatus('');
     setLoading(false);
@@ -124,6 +208,10 @@ export default function Home() {
     setErrorDetails('');
   };
 
+  const toggleLanguage = () => {
+    setLanguage((prev) => (prev === 'he' ? 'en' : 'he'));
+  };
+
   const LetterOrnament = ({ letter = 'א', size = 60 }) => (
     <div style={{
       width: size, height: size, margin: '0 auto',
@@ -137,13 +225,10 @@ export default function Home() {
         animation: 'pulseGlow 3s ease-in-out infinite',
       }} />
       <div style={{
-        fontSize: size * 0.6,
-        fontFamily: fontTitle,
+        fontSize: size * 0.6, fontFamily: fontTitle,
         color: colors.goldBright,
         textShadow: `0 0 20px ${colors.gold}, 0 0 40px ${colors.gold}80`,
-        fontWeight: 400,
-        position: 'relative',
-        zIndex: 1,
+        fontWeight: 400, position: 'relative', zIndex: 1,
       }}>{letter}</div>
     </div>
   );
@@ -151,11 +236,7 @@ export default function Home() {
   const Divider = () => (
     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '1.5rem 0', width: '100%' }}>
       <div style={{ flex: 1, height: '1px', background: `linear-gradient(to right, transparent, ${colors.gold} 50%, transparent)` }} />
-      <div style={{
-        width: '6px', height: '6px', margin: '0 14px',
-        transform: 'rotate(45deg)', background: colors.goldBright,
-        boxShadow: `0 0 10px ${colors.gold}`,
-      }} />
+      <div style={{ width: '6px', height: '6px', margin: '0 14px', transform: 'rotate(45deg)', background: colors.goldBright, boxShadow: `0 0 10px ${colors.gold}` }} />
       <div style={{ flex: 1, height: '1px', background: `linear-gradient(to right, transparent, ${colors.gold} 50%, transparent)` }} />
     </div>
   );
@@ -182,8 +263,9 @@ export default function Home() {
             outline: 'none', cursor: 'pointer', borderRadius: '2px',
           }}
         />
-        <div dir="rtl" style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', color: colors.creamMuted, fontFamily: fontBody, fontSize: '0.95rem' }}>
-          <span>{rightLabel}</span><span>{leftLabel}</span>
+        <div dir={isRTL ? 'rtl' : 'ltr'} style={{ display: 'flex', justifyContent: 'space-between', marginTop: '1rem', color: colors.creamMuted, fontFamily: fontBody, fontSize: '0.95rem' }}>
+          <span>{isRTL ? rightLabel : rightLabel}</span>
+          <span>{isRTL ? leftLabel : leftLabel}</span>
         </div>
       </div>
     );
@@ -202,7 +284,7 @@ export default function Home() {
             cursor: 'pointer', padding: 0, opacity: 0.9, letterSpacing: '0.05em',
           }}
         >
-          ✦ {isExpanded ? 'הסתר' : 'הצג'} {sources.length} מקורות מ-Sefaria {keywords && `(חיפוש: ${keywords})`} {isExpanded ? '▲' : '▼'}
+          ✦ {isExpanded ? tx.sourcesHide : tx.sourcesShow} {sources.length} {tx.sourcesLabel} {keywords && `${tx.sourcesSearch} ${keywords}${tx.closeBracket}`} {isExpanded ? '▲' : '▼'}
         </button>
         {isExpanded && (
           <div style={{ marginTop: '0.8rem' }}>
@@ -212,7 +294,7 @@ export default function Home() {
                 border: `1px solid ${colors.gold}50`,
                 borderRadius: '4px', padding: '0.8rem 1rem', marginBottom: '0.6rem',
                 backdropFilter: 'blur(8px)',
-              }}>
+              }} dir="rtl">
                 <a href={s.url} target="_blank" rel="noopener noreferrer"
                   style={{
                     color: colors.goldBright, fontFamily: fontTitle,
@@ -222,7 +304,7 @@ export default function Home() {
                   }}>
                   {s.heRef || s.ref} ↗
                 </a>
-                <div style={{ fontSize: '0.95rem', color: colors.creamMuted, lineHeight: 1.7, fontFamily: fontBody }}>
+                <div style={{ fontSize: '0.95rem', color: colors.creamMuted, lineHeight: 1.7, fontFamily: '"Frank Ruhl Libre", serif' }}>
                   {s.text.slice(0, 350)}{s.text.length > 350 ? '...' : ''}
                 </div>
                 {s.categories && s.categories.length > 0 && (
@@ -262,13 +344,56 @@ export default function Home() {
     boxShadow: `0 0 60px ${colors.gold}15, inset 0 0 60px ${colors.midPurple}40`,
   };
 
+  // ────────────────────────────────────────────────────────────
+  // LANGUAGE TOGGLE - floating button always visible
+  // ────────────────────────────────────────────────────────────
+  const LanguageToggle = () => (
+    <button
+      onClick={toggleLanguage}
+      style={{
+        position: 'fixed',
+        top: '1.2rem',
+        [isRTL ? 'left' : 'right']: '1.2rem',
+        zIndex: 100,
+        background: `linear-gradient(135deg, ${colors.midPurple}cc, ${colors.bg}dd)`,
+        backdropFilter: 'blur(10px)',
+        border: `1px solid ${colors.gold}60`,
+        borderRadius: '20px',
+        padding: '0.5rem 1rem',
+        color: colors.goldBright,
+        fontFamily: fontBody,
+        fontSize: '0.9rem',
+        fontWeight: 600,
+        cursor: 'pointer',
+        letterSpacing: '0.1em',
+        boxShadow: `0 0 20px ${colors.gold}30`,
+        transition: 'all 0.2s ease',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '0.5rem',
+      }}
+      onMouseEnter={(e) => {
+        e.target.style.borderColor = colors.goldBright;
+        e.target.style.boxShadow = `0 0 30px ${colors.gold}60`;
+      }}
+      onMouseLeave={(e) => {
+        e.target.style.borderColor = `${colors.gold}60`;
+        e.target.style.boxShadow = `0 0 20px ${colors.gold}30`;
+      }}
+    >
+      🌐 {tx.languageOther}
+    </button>
+  );
+
   return (
-    <div dir="rtl" style={{
+    <div dir={isRTL ? 'rtl' : 'ltr'} style={{
       minHeight: '100vh', width: '100%',
       fontFamily: fontBody, color: colors.cream,
       position: 'relative', overflow: 'hidden',
     }}>
       <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400;500;600;700&display=swap');
+
         .gate-slider::-webkit-slider-thumb {
           -webkit-appearance: none; appearance: none;
           width: 24px; height: 24px; border-radius: 50%;
@@ -346,6 +471,8 @@ export default function Home() {
         transition: 'background 1s ease',
       }} />
 
+      <LanguageToggle />
+
       <div style={{
         maxWidth: '720px', margin: '0 auto',
         position: 'relative', zIndex: 3, padding: '2rem 1rem',
@@ -361,11 +488,11 @@ export default function Home() {
               fontWeight: 500, color: colors.cream,
               margin: '2rem 0 0.5rem', letterSpacing: '0.05em',
               textShadow: `0 0 40px ${colors.gold}80, 0 0 80px ${colors.gold}40`,
-            }}>שַׁעַר הָאֱמֶת</h1>
+            }}>{tx.title}</h1>
             <div style={{
               color: colors.goldBright, fontSize: '0.9rem', letterSpacing: '0.4em',
               fontFamily: fontBody, marginTop: '0.5rem', opacity: 0.85,
-            }}>✦  GATE OF TRUTH  ✦</div>
+            }}>✦  {tx.subtitle}  ✦</div>
             <Divider />
             <p style={{
               fontFamily: fontBody, fontSize: 'clamp(1rem, 2.4vw, 1.2rem)',
@@ -373,16 +500,16 @@ export default function Home() {
               maxWidth: '520px', margin: '0 auto 1.5rem', fontWeight: 300,
               letterSpacing: '0.02em', opacity: 0.92,
             }}>
-              מקום להניח בו את השאלות, את הספקות,
-              <br />ואת מה שמכביד על הלב.
+              {tx.welcomeText1}
+              <br />{tx.welcomeText2}
             </p>
             <p style={{
               fontFamily: fontBody, fontSize: '0.95rem', lineHeight: 1.8,
-              color: colors.creamMuted, maxWidth: '450px', margin: '0 auto 2.5rem',
+              color: colors.creamMuted, maxWidth: '500px', margin: '0 auto 2.5rem',
               fontStyle: 'italic',
             }}>
-              מענה מתוך עומק חכמת הקבלה — הזוהר, האר״י הקדוש,
-              ותורת בעל הסולם.
+              {tx.welcomeText3}
+              <br />{tx.welcomeText4}
             </p>
             <button
               onClick={() => setStage('q1')}
@@ -394,12 +521,12 @@ export default function Home() {
                 cursor: 'pointer', letterSpacing: '0.15em', fontWeight: 600,
                 transition: 'all 0.25s ease',
               }}
-            >היכנס</button>
+            >{tx.enter}</button>
             <div style={{
               marginTop: '5rem', fontSize: '0.8rem',
               color: colors.creamMuted, opacity: 0.5, lineHeight: 1.7,
-              maxWidth: '380px', margin: '5rem auto 0',
-            }}>כלי לחיזוק ולעיון. אינו מחליף רב חי או ייעוץ מקצועי.</div>
+              maxWidth: '420px', margin: '5rem auto 0',
+            }}>{tx.disclaimer}</div>
           </div>
         )}
 
@@ -407,15 +534,15 @@ export default function Home() {
           <div className="fade-up" style={{ paddingTop: '5rem' }}>
             <div style={{ ...glassCard, padding: '3rem 2rem' }}>
               <div style={{ textAlign: 'center', color: colors.goldBright, fontSize: '0.85rem', letterSpacing: '0.4em', marginBottom: '2rem', opacity: 0.85 }}>
-                ׀ שלב ראשון מתוך שלושה ׀
+                {tx.stage1of3}
               </div>
               <h2 style={{ fontFamily: fontTitle, fontSize: 'clamp(1.7rem, 4.5vw, 2.4rem)', fontWeight: 400, textAlign: 'center', marginBottom: '3rem', lineHeight: 1.5, color: colors.cream, textShadow: `0 0 20px ${colors.gold}40` }}>
-                עד כמה אתה מאמין בהשם?
+                {tx.q1}
               </h2>
-              <Slider value={godBelief} onChange={setGodBelief} leftLabel="10 — אמונה מלאה" rightLabel="1 — לא מאמין" />
+              <Slider value={godBelief} onChange={setGodBelief} leftLabel={tx.q1Left} rightLabel={tx.q1Right} />
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4rem', gap: '1rem' }}>
-                <button onClick={() => setStage('welcome')} className="ghost-btn" style={ghostButtonStyle}>← חזור</button>
-                <button onClick={() => setStage('q2')} className="primary-btn" style={primaryButtonStyle}>המשך ←</button>
+                <button onClick={() => setStage('welcome')} className="ghost-btn" style={ghostButtonStyle}>{tx.back}</button>
+                <button onClick={() => setStage('q2')} className="primary-btn" style={primaryButtonStyle}>{tx.continue}</button>
               </div>
             </div>
           </div>
@@ -425,15 +552,15 @@ export default function Home() {
           <div className="fade-up" style={{ paddingTop: '5rem' }}>
             <div style={{ ...glassCard, padding: '3rem 2rem' }}>
               <div style={{ textAlign: 'center', color: colors.goldBright, fontSize: '0.85rem', letterSpacing: '0.4em', marginBottom: '2rem', opacity: 0.85 }}>
-                ׀ שלב שני מתוך שלושה ׀
+                {tx.stage2of3}
               </div>
               <h2 style={{ fontFamily: fontTitle, fontSize: 'clamp(1.7rem, 4.5vw, 2.4rem)', fontWeight: 400, textAlign: 'center', marginBottom: '3rem', lineHeight: 1.5, color: colors.cream, textShadow: `0 0 20px ${colors.gold}40` }}>
-                עד כמה אתה מאמין בתורת משה?
+                {tx.q2}
               </h2>
-              <Slider value={torahBelief} onChange={setTorahBelief} leftLabel="10 — ניתנה למשה בסיני" rightLabel="1 — לא מאמין" />
+              <Slider value={torahBelief} onChange={setTorahBelief} leftLabel={tx.q2Left} rightLabel={tx.q2Right} />
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '4rem', gap: '1rem' }}>
-                <button onClick={() => setStage('q1')} className="ghost-btn" style={ghostButtonStyle}>← חזור</button>
-                <button onClick={() => setStage('q3')} className="primary-btn" style={primaryButtonStyle}>המשך ←</button>
+                <button onClick={() => setStage('q1')} className="ghost-btn" style={ghostButtonStyle}>{tx.back}</button>
+                <button onClick={() => setStage('q3')} className="primary-btn" style={primaryButtonStyle}>{tx.continue}</button>
               </div>
             </div>
           </div>
@@ -443,20 +570,21 @@ export default function Home() {
           <div className="fade-up" style={{ paddingTop: '4rem' }}>
             <div style={{ ...glassCard, padding: '3rem 2rem' }}>
               <div style={{ textAlign: 'center', color: colors.goldBright, fontSize: '0.85rem', letterSpacing: '0.4em', marginBottom: '2rem', opacity: 0.85 }}>
-                ׀ שלב שלישי מתוך שלושה ׀
+                {tx.stage3of3}
               </div>
               <h2 style={{ fontFamily: fontTitle, fontSize: 'clamp(1.7rem, 4.5vw, 2.4rem)', fontWeight: 400, textAlign: 'center', marginBottom: '1.2rem', lineHeight: 1.5, color: colors.cream, textShadow: `0 0 20px ${colors.gold}40` }}>
-                מה הספק העיקרי שלך?
+                {tx.q3}
               </h2>
               <p style={{ textAlign: 'center', color: colors.creamMuted, marginBottom: '2.5rem', fontSize: '1rem', lineHeight: 1.8 }}>
-                כתוב בחופשיות את מה שמכביד עליך — שאלה, קושיה, חוויה,
-                <br />או כל דבר שמרחיק אותך מהאמונה.
+                {tx.q3Sub1}
+                <br />{tx.q3Sub2}
               </p>
               <textarea
                 value={mainDoubt}
                 onChange={(e) => setMainDoubt(e.target.value)}
-                placeholder="לדוגמה: אם יש אלוהים טוב, איך הוא נותן לרע לקרות?"
+                placeholder={tx.q3Placeholder}
                 rows={7}
+                dir={isRTL ? 'rtl' : 'ltr'}
                 style={{
                   width: '100%', background: `${colors.bg}aa`,
                   border: `1px solid ${colors.gold}50`, borderRadius: '4px',
@@ -469,13 +597,13 @@ export default function Home() {
                 onBlur={(e) => { e.target.style.borderColor = `${colors.gold}50`; e.target.style.boxShadow = 'none'; }}
               />
               <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '2.5rem', gap: '1rem' }}>
-                <button onClick={() => setStage('q2')} className="ghost-btn" style={ghostButtonStyle}>← חזור</button>
+                <button onClick={() => setStage('q2')} className="ghost-btn" style={ghostButtonStyle}>{tx.back}</button>
                 <button
                   onClick={startChat}
                   disabled={!mainDoubt.trim()}
                   className="primary-btn"
                   style={{ ...primaryButtonStyle, opacity: mainDoubt.trim() ? 1 : 0.4, cursor: mainDoubt.trim() ? 'pointer' : 'not-allowed' }}
-                >פתח את השער ←</button>
+                >{tx.openGate}</button>
               </div>
             </div>
           </div>
@@ -489,7 +617,7 @@ export default function Home() {
                 fontFamily: fontTitle, fontSize: '1.5rem', color: colors.cream,
                 marginTop: '0.5rem', letterSpacing: '0.05em',
                 textShadow: `0 0 20px ${colors.gold}60`,
-              }}>שַׁעַר הָאֱמֶת</div>
+              }}>{tx.chatHeader}</div>
               <button
                 onClick={reset} className="ghost-btn"
                 style={{
@@ -498,7 +626,7 @@ export default function Home() {
                   padding: '0.3rem 1rem', borderRadius: '2px', cursor: 'pointer', marginTop: '0.8rem',
                   transition: 'all 0.2s ease',
                 }}
-              >התחל מחדש</button>
+              >{tx.restart}</button>
             </div>
 
             <div style={{ flex: 1, marginBottom: '1.5rem' }}>
@@ -529,7 +657,7 @@ export default function Home() {
                         color: msg.isError ? colors.error : colors.goldBright,
                         letterSpacing: '0.3em', marginBottom: '0.9rem', opacity: 0.9,
                         textShadow: msg.isError ? 'none' : `0 0 10px ${colors.gold}60`,
-                      }}>✦ {msg.isError ? 'שגיאה' : 'שער האמת'}</div>
+                      }}>✦ {msg.isError ? tx.error : tx.name}</div>
                     )}
                     {msg.content}
                     {msg.isError && errorDetails && i === messages.length - 1 && (
@@ -588,8 +716,9 @@ export default function Home() {
                       sendMessage();
                     }
                   }}
-                  placeholder="המשך לשאול, להעמיק, או לשתף..."
+                  placeholder={tx.inputPlaceholder}
                   rows={2}
+                  dir={isRTL ? 'rtl' : 'ltr'}
                   style={{
                     flex: 1, background: `${colors.bg}cc`,
                     border: `1px solid ${colors.gold}50`, borderRadius: '4px',
@@ -615,7 +744,7 @@ export default function Home() {
                     boxShadow: `0 0 20px ${colors.gold}60`,
                     transition: 'all 0.2s ease',
                   }}
-                >שלח</button>
+                >{tx.send}</button>
               </div>
             </div>
           </div>
