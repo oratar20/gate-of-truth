@@ -4,7 +4,7 @@ const client = new Anthropic({
   apiKey: process.env.ANTHROPIC_API_KEY,
 });
 
-const MODEL = 'claude-sonnet-4-5';
+const MODEL = 'claude-sonnet-4-5-20250929';
 
 const SYSTEM_PROMPT = `אתה "שער האמת" — אח גדול שמדבר עם מישהו רחוק, ועוזר לו לחזור.
 
