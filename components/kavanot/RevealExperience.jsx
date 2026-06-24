@@ -8,8 +8,8 @@ import { useState, useEffect } from 'react';
 import { Cosmos, GlowText, THEME } from '@/components/kavanot/Cosmos';
 import { resolveState } from '@/lib/kavanot/engine';
 import { pickForMoment } from '@/lib/kavanot/select';
+import { fallbackLocation } from '@/lib/kavanot/geo';
 
-const FALLBACK = { lat: 31.7683, lng: 35.2137, cityName: 'ירושלים', tzid: 'Asia/Jerusalem' };
 const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 
 export default function RevealExperience() {
@@ -29,11 +29,11 @@ export default function RevealExperience() {
     };
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
-        (p) => compute({ lat: p.coords.latitude, lng: p.coords.longitude }),
-        () => compute(FALLBACK),
+        (p) => compute({ lat: p.coords.latitude, lng: p.coords.longitude, cityName: 'מיקומך' }),
+        () => compute(fallbackLocation()),   // נדחה/נכשל → מיקום לפי אזור-הזמן
         { timeout: 8000 }
       );
-    } else compute(FALLBACK);
+    } else compute(fallbackLocation());
   }, []);
 
   const doScan = () => {
