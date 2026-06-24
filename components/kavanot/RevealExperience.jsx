@@ -9,7 +9,7 @@ import { Cosmos, GlowText, THEME } from '@/components/kavanot/Cosmos';
 import { resolveState } from '@/lib/kavanot/engine';
 import { pickForMoment } from '@/lib/kavanot/select';
 
-const FALLBACK = { lat: 31.7683, lng: 35.2137, cityName: 'ירושלים' };
+const FALLBACK = { lat: 31.7683, lng: 35.2137, cityName: 'ירושלים', tzid: 'Asia/Jerusalem' };
 const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 
 export default function RevealExperience() {
@@ -20,9 +20,11 @@ export default function RevealExperience() {
   const [current, setCurrent] = useState(null);
 
   useEffect(() => {
-    const tzid = Intl.DateTimeFormat().resolvedOptions().timeZone;
+    const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
     const compute = (loc) => {
-      try { setState(resolveState(new Date(), { ...loc, tzid })); }
+      // אם המיקום נושא tz משלו (נפילת ברירת-מחדל) — נשתמש בו; אחרת tz הדפדפן
+      // (משתמש אמיתי עם geolocation נמצא באזור-הזמן של עצמו).
+      try { setState(resolveState(new Date(), { ...loc, tzid: loc.tzid || browserTz })); }
       catch (e) { setErr(e.message || 'engine error'); }
     };
     if (typeof navigator !== 'undefined' && navigator.geolocation) {
@@ -65,20 +67,28 @@ export default function RevealExperience() {
 
 function ScanScreen({ state, onScan }) {
   const dayName = DAY_NAMES[state.weekday.index];
+  const city = state.location?.cityName;
+  let localTime = '';
+  try {
+    localTime = new Intl.DateTimeFormat('he', { timeZone: state.location?.tzid, hour: '2-digit', minute: '2-digit' }).format(new Date(state.gregorian));
+  } catch { localTime = ''; }
   return (
     <div style={center}>
       <div style={{ fontSize: 13, letterSpacing: 4, color: THEME.dim, fontWeight: 300, marginBottom: 8 }}>
         {state.hebrew.date}
       </div>
-      <div style={{ fontSize: 12.5, letterSpacing: 3, color: THEME.faint, fontWeight: 300, marginBottom: 30 }}>
+      <div style={{ fontSize: 12.5, letterSpacing: 3, color: THEME.faint, fontWeight: 300, marginBottom: 6 }}>
         יום {dayName} · {state.weekday.sefira} · {state.tefilla}
         {state.omer ? ` · עומר ${state.omer.day}` : ''}
+      </div>
+      <div style={{ fontSize: 12, letterSpacing: 2, color: THEME.faint, fontWeight: 300, marginBottom: 30 }}>
+        ✦ {[city, localTime].filter(Boolean).join(' · ')} ✦
       </div>
       <GlowText size="clamp(30px, 8vw, 46px)" weight={500} style={{ letterSpacing: 2 }}>
         קַבֵּל יִחוּד לָרֶגַע
       </GlowText>
-      <p style={{ maxWidth: 340, marginTop: 22, fontFamily: THEME.serif, fontSize: 16.5, lineHeight: 1.9, fontWeight: 300, color: 'rgba(233,230,221,0.78)' }}>
-        סריקה של הרגע הנוכחי תציע מוקד להתבוננות — ייחוד, שם מע״ב, או צירוף שם הוי״ה.
+      <p style={{ maxWidth: 360, marginTop: 22, fontFamily: THEME.serif, fontSize: 16.5, lineHeight: 1.9, fontWeight: 300, color: 'rgba(233,230,221,0.78)' }}>
+        סריקת הרגע — לפי המיקום, השעה, ויום השבוע — תגלה את <b style={{ fontWeight: 500, color: THEME.light }}>השם השולט עכשיו</b> בשעה הזמנית, ותציע גם ייחוד, שם מע״ב, שם הוי״ה ושם הקודש.
       </p>
       <button onClick={onScan} style={primaryBtn}>סרוק את הרגע ✦</button>
     </div>

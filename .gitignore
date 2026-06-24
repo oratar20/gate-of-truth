@@ -24,3 +24,5 @@ yarn-error.log*
 # editor / harness
 /.claude/
 .vscode/
+
+.vercel
