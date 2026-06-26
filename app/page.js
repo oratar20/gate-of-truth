@@ -8,6 +8,7 @@ import { Cosmos, GlowText, THEME } from '@/components/kavanot/Cosmos';
 const GATES = [
   { href: '/reveal', label: 'הִתְבּוֹנְנוּת', sub: 'השם השולט עכשיו · סריקת הרגע לפי מקום ושעה', primary: true },
   { href: '/ask', label: 'שְׁאַל', sub: 'מענה מעומק הקבלה · מבוסס מקורות', primary: true },
+  { href: '/limud', label: 'לִימּוּד הַשָּׁבוּעַ', sub: 'זוהר לפי פרשת השבוע', primary: true },
   { href: '/sefirot', label: 'עֵץ הַסְּפִירוֹת', sub: 'עשר הספירות · ירידת האור', primary: false },
   { href: '/names', label: 'ע״ב שֵׁמוֹת', sub: 'שבעים ושניים השמות', primary: false },
   { href: '/havaya', label: 'שֵׁם הֲוָיָ״ה', sub: 'השם וצירופיו', primary: false },
