@@ -36,11 +36,15 @@ export default function LimudPrototype() {
       <div style={wrap}>
         <div style={{ textAlign: 'center', paddingTop: 20 }}>
           <div style={{ fontSize: 12.5, letterSpacing: 5, color: THEME.faint, fontWeight: 300 }}>לִימּוּד הַשָּׁבוּעַ</div>
-          <div style={{ marginTop: 14 }}>
+          <WellEmblem />
+          <div style={{ marginTop: 6 }}>
             <GlowText size="clamp(38px, 10vw, 60px)" weight={500} style={{ letterSpacing: 2 }}>חֻקַּת · בָּלָק</GlowText>
           </div>
           <div style={{ marginTop: 12, fontSize: 13, letterSpacing: 2, color: THEME.dim, fontWeight: 300 }}>
             ✦ פרשת השבוע · בְּאוֹר הַזֹּהַר הַקָּדוֹשׁ ✦
+          </div>
+          <div style={{ marginTop: 6, fontSize: 11, letterSpacing: 1.5, color: THEME.faint, fontWeight: 300 }}>
+            סֵמֶל · בְּאֵר מִרְיָם
           </div>
         </div>
 
@@ -57,6 +61,35 @@ export default function LimudPrototype() {
         </div>
       </div>
     </Cosmos>
+  );
+}
+
+// סמל סמלי לפרשה — באר מרים: באר-אור עם אדוות ואור עולה.
+function WellEmblem() {
+  const W = 'rgba(255,255,255,';
+  return (
+    <div style={{ display: 'flex', justifyContent: 'center', margin: '14px 0 4px' }}>
+      <svg viewBox="0 0 200 150" width="180" height="135" aria-label="סמל באר מרים" style={{ overflow: 'visible' }}>
+        {/* קרני אור עולות מן הבאר */}
+        {[-26, -13, 0, 13, 26].map((dx, i) => (
+          <line key={i} x1={100 + dx * 0.3} y1="96" x2={100 + dx} y2="30"
+            stroke={`${W}${0.18 - Math.abs(dx) * 0.003})`} strokeWidth="1">
+            <animate attributeName="opacity" values="0.15;0.5;0.15" dur="5s" begin={`${i * 0.6}s`} repeatCount="indefinite" />
+          </line>
+        ))}
+        {/* ליבת הבאר הזוהרת */}
+        <ellipse cx="100" cy="100" rx="9" ry="4.5" fill={`${W}0.95)`} style={{ filter: 'drop-shadow(0 0 8px #fff)' }}>
+          <animate attributeName="rx" values="9;11;9" dur="4s" repeatCount="indefinite" />
+        </ellipse>
+        {/* אדוות מים — אליפסות קונצנטריות */}
+        {[18, 30, 44, 60, 78].map((rx, i) => (
+          <ellipse key={i} cx="100" cy="100" rx={rx} ry={rx * 0.42} fill="none"
+            stroke={`${W}${0.34 - i * 0.05})`} strokeWidth="0.9">
+            <animate attributeName="ry" values={`${rx * 0.42};${rx * 0.46};${rx * 0.42}`} dur="6s" begin={`${i * 0.4}s`} repeatCount="indefinite" />
+          </ellipse>
+        ))}
+      </svg>
+    </div>
   );
 }
 
