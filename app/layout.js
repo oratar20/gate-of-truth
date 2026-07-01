@@ -1,3 +1,5 @@
+import { LangProvider } from '@/components/i18n/LangProvider';
+
 export const metadata = {
   title: 'שער האמת | Gate of Truth',
   description: 'מענה רוחני מבוסס חכמת הקבלה, החסידות, והפסיכולוגיה הרוחנית',
@@ -15,7 +17,9 @@ export default function RootLayout({ children }) {
         />
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </head>
-      <body style={{ margin: 0, padding: 0, background: '#06040f' }} suppressHydrationWarning>{children}</body>
+      <body style={{ margin: 0, padding: 0, background: '#06040f' }} suppressHydrationWarning>
+        <LangProvider>{children}</LangProvider>
+      </body>
     </html>
   );
 }
