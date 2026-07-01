@@ -9,6 +9,7 @@ import { Cosmos, GlowText, THEME } from '@/components/kavanot/Cosmos';
 import { resolveState } from '@/lib/kavanot/engine';
 import { pickForMoment } from '@/lib/kavanot/select';
 import { fallbackLocation } from '@/lib/kavanot/geo';
+import { useLang } from '@/components/i18n/LangProvider';
 
 const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת'];
 
@@ -18,6 +19,7 @@ export default function RevealExperience() {
   const [screen, setScreen] = useState('scan'); // scan | reveal | contemplate
   const [pick, setPick] = useState(null);
   const [current, setCurrent] = useState(null);
+  const { lang } = useLang();
 
   useEffect(() => {
     const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
@@ -38,7 +40,7 @@ export default function RevealExperience() {
 
   const doScan = () => {
     if (!state) return;
-    const p = pickForMoment(state);
+    const p = pickForMoment(state, lang);
     setPick(p);
     setCurrent(p.primary);
     setScreen('reveal');
