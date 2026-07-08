@@ -4,9 +4,9 @@
 //  רמות נבחרות; לכל אות: הניקוד, אור-מונחה בכיוון תנועת-הראש,
 //  וטבעת-נשימה מסונכרנת (שאיפה → הגייה+תנועה → מנוחה).
 // ─────────────────────────────────────────────────────────────
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Cosmos, GlowText, THEME } from '@/components/kavanot/Cosmos';
-import { LEVELS, VOWELS, buildSequence, ALL_72, PREPARATION, BREATH, PACES, timing, SOURCE } from '@/lib/kavanot/abulafia';
+import { LEVELS, VOWELS, VOWEL_SAY, buildSequence, ALL_72, PREPARATION, BREATH, PACES, timing, SOURCE } from '@/lib/kavanot/abulafia';
 
 const PHASES = [
   { key: 'inhale', label: 'שְׁאִיפָה', hint: 'שאף לאט דרך האף' },
@@ -79,6 +79,42 @@ function Player({ seq }) {
   const dur = (p) => [T.inhaleMs, T.chantMs, T.restMs][p];
   const L = seq[idx];
 
+  // ── קול מדריך (Web Speech) ──
+  const [voiceOn, setVoiceOn] = useState(true);
+  const voiceRef = useRef(null);
+  useEffect(() => {
+    if (typeof window === 'undefined' || !window.speechSynthesis) return;
+    const pick = () => {
+      const vs = window.speechSynthesis.getVoices() || [];
+      voiceRef.current = vs.find((v) => /he[-_]?IL/i.test(v.lang)) || vs.find((v) => /^he|^iw/i.test(v.lang)) || vs.find((v) => /hebrew|carmit/i.test(v.name)) || null;
+    };
+    pick();
+    window.speechSynthesis.onvoiceschanged = pick;
+    return () => { try { window.speechSynthesis.cancel(); } catch {} };
+  }, []);
+  const speak = (text) => {
+    if (!voiceOn || typeof window === 'undefined' || !window.speechSynthesis) return;
+    try {
+      window.speechSynthesis.cancel();
+      const u = new SpeechSynthesisUtterance(text);
+      if (voiceRef.current) u.voice = voiceRef.current;
+      u.lang = 'he-IL'; u.rate = 0.82; u.pitch = 1;
+      window.speechSynthesis.speak(u);
+    } catch {}
+  };
+  // דבר בתחילת כל שלב
+  useEffect(() => {
+    if (!playing || phase < 0 || !L) return;
+    const cue = phase === 0 ? 'שְׁאַף לְאַט' : phase === 1 ? `הָגֵּה. ${VOWEL_SAY[L.vowel]}` : 'נוּחַ, וּנְשֹׁם';
+    speak(cue);
+  }, [phase, idx, playing]);
+  // עצור דיבור בהשהיה / השתקה / סיום
+  useEffect(() => {
+    if ((!playing || !voiceOn) && typeof window !== 'undefined' && window.speechSynthesis) {
+      try { window.speechSynthesis.cancel(); } catch {}
+    }
+  }, [playing, voiceOn]);
+
   useEffect(() => {
     if (!playing || phase < 0) return;
     const t = setTimeout(() => {
@@ -107,6 +143,17 @@ function Player({ seq }) {
             color: p.id === paceId ? THEME.light : THEME.dim, opacity: playing ? 0.5 : 1,
           }}>{p.label}</button>
         ))}
+      </div>
+
+      <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 10 }}>
+        <button onClick={() => setVoiceOn((v) => !v)} style={{
+          ...pacePill, display: 'flex', alignItems: 'center', gap: 7,
+          borderColor: voiceOn ? 'rgba(255,255,255,0.5)' : 'rgba(233,230,221,0.16)',
+          color: voiceOn ? THEME.light : THEME.dim,
+        }}>
+          <span style={{ width: 8, height: 8, borderRadius: '50%', background: voiceOn ? '#fbfaf5' : 'transparent', border: '1px solid rgba(255,255,255,0.5)', boxShadow: voiceOn ? '0 0 8px rgba(255,255,255,0.6)' : 'none' }} />
+          {voiceOn ? 'קוֹל מַדְרִיךְ' : 'מוּשְׁתָּק'}
+        </button>
       </div>
 
       <Stage L={L} phase={phase} active={active} idx={idx} T={T} />
