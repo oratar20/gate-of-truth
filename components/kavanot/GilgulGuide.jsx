@@ -65,22 +65,23 @@ function Player({ seq }) {
   const dur = (p) => [T.inhaleMs, T.chantMs, T.restMs][p];
   const L = seq[idx];
 
-  const voiceRef = useRef(null);
+  const audioRef = useRef(null);
   useEffect(() => {
-    if (typeof window === 'undefined' || !window.speechSynthesis) return;
-    const pick = () => { const vs = window.speechSynthesis.getVoices() || []; voiceRef.current = vs.find((v) => /he[-_]?IL/i.test(v.lang)) || vs.find((v) => /^he|^iw/i.test(v.lang)) || vs.find((v) => /hebrew|carmit/i.test(v.name)) || null; };
-    pick(); window.speechSynthesis.onvoiceschanged = pick;
-    return () => { try { window.speechSynthesis.cancel(); } catch {} };
+    audioRef.current = typeof Audio !== 'undefined' ? new Audio() : null;
+    if (audioRef.current) audioRef.current.preload = 'auto';
+    return () => { try { audioRef.current?.pause(); } catch {} };
   }, []);
-  const speak = (text) => {
-    if (!voiceOn || typeof window === 'undefined' || !window.speechSynthesis) return;
-    try { window.speechSynthesis.cancel(); const u = new SpeechSynthesisUtterance(text); if (voiceRef.current) u.voice = voiceRef.current; u.lang = 'he-IL'; u.rate = 0.82; window.speechSynthesis.speak(u); } catch {}
+  const play = (name) => {
+    if (!voiceOn) return;
+    const a = audioRef.current; if (!a) return;
+    try { a.pause(); a.src = `/audio/guide/${name}.mp3`; a.currentTime = 0; a.play().catch(() => {}); } catch {}
   };
   useEffect(() => {
     if (!playing || phase < 0 || !L) return;
-    speak(phase === 0 ? 'שְׁאַף לְאַט' : phase === 1 ? `הָגֵּה. ${L.say}` : 'נוּחַ, וּנְשֹׁם');
+    play(phase === 0 ? 'inhale' : phase === 1 ? L.dir : 'rest');
   }, [phase, idx, playing]);
-  useEffect(() => { if ((!playing || !voiceOn) && typeof window !== 'undefined' && window.speechSynthesis) { try { window.speechSynthesis.cancel(); } catch {} } }, [playing, voiceOn]);
+  useEffect(() => { if (done) play('done'); }, [done]);
+  useEffect(() => { if ((!playing || !voiceOn) && audioRef.current) { try { audioRef.current.pause(); } catch {} } }, [playing, voiceOn]);
 
   useEffect(() => {
     if (!playing || phase < 0) return;
@@ -117,7 +118,7 @@ function Player({ seq }) {
           <>
             <div style={{ fontSize: 13, letterSpacing: 3, color: THEME.light }}>{PHASES[phase].label}</div>
             <div style={{ fontSize: 13, color: THEME.dim, marginTop: 6 }}>
-              {phase === 1 ? <><b style={{ color: THEME.light, fontWeight: 500 }}>{VOWELS_OS[L.vowel].he} {L.arrow}</b> · {L.move}</> : PHASES[phase].hint}
+              {phase === 1 ? <>הָגֵּה אֶת הָאוֹת בְּקוֹל · <b style={{ color: THEME.light, fontWeight: 500 }}>{VOWELS_OS[L.vowel].he} {L.arrow}</b> · {L.move}</> : PHASES[phase].hint}
             </div>
           </>
         ) : done ? <div style={{ fontFamily: THEME.serif, fontSize: 16, color: 'rgba(233,230,221,0.8)' }}>הושלם. שֵׁב רגע בשקט.</div>
