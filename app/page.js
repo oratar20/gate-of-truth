@@ -11,6 +11,7 @@ const GATES = [
   { href: '/ask', key: 'gate.ask', primary: true },
   { href: '/limud', key: 'gate.limud', primary: true },
   { href: '/hazkara', key: 'gate.hazkara', primary: false },
+  { href: '/gilgul', key: 'gate.gilgul', primary: false },
   { href: '/sefirot', key: 'gate.sefirot', primary: false },
   { href: '/names', key: 'gate.names', primary: false },
   { href: '/havaya', key: 'gate.havaya', primary: false },
