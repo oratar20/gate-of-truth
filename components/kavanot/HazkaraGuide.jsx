@@ -6,14 +6,13 @@
 // ─────────────────────────────────────────────────────────────
 import { useState, useEffect } from 'react';
 import { Cosmos, GlowText, THEME } from '@/components/kavanot/Cosmos';
-import { LEVELS, VOWELS, buildSequence, ALL_72, PREPARATION, BREATH, SOURCE } from '@/lib/kavanot/abulafia';
+import { LEVELS, VOWELS, buildSequence, ALL_72, PREPARATION, BREATH, PACES, timing, SOURCE } from '@/lib/kavanot/abulafia';
 
 const PHASES = [
   { key: 'inhale', label: 'שְׁאִיפָה', hint: 'שאף לאט דרך האף' },
   { key: 'chant',  label: 'הַגָּה וְהָנַע', hint: 'הגה את האות בנשיפה אחת, והנע את הראש' },
   { key: 'rest',   label: 'מְנוּחָה', hint: 'נוח כשלוש נשימות' },
 ];
-const durOf = (p) => (p === 0 ? BREATH.inhaleMs : p === 1 ? BREATH.chantMs : BREATH.restMs);
 
 export default function HazkaraGuide() {
   const [levelId, setLevelId] = useState('prep');
@@ -75,6 +74,9 @@ function Player({ seq }) {
   const [phase, setPhase] = useState(-1); // -1 idle
   const [playing, setPlaying] = useState(false);
   const [done, setDone] = useState(false);
+  const [paceId, setPaceId] = useState('med');
+  const T = timing((PACES.find((p) => p.id === paceId) || PACES[1]).exhale);
+  const dur = (p) => [T.inhaleMs, T.chantMs, T.restMs][p];
   const L = seq[idx];
 
   useEffect(() => {
@@ -84,9 +86,9 @@ function Player({ seq }) {
         if (idx + 1 < seq.length) { setIdx(idx + 1); setPhase(0); }
         else { setPlaying(false); setPhase(-1); setDone(true); }
       } else setPhase(phase + 1);
-    }, durOf(phase));
+    }, dur(phase));
     return () => clearTimeout(t);
-  }, [playing, phase, idx, seq.length]);
+  }, [playing, phase, idx, seq.length, paceId]);
 
   const start = () => { setIdx(0); setPhase(0); setPlaying(true); setDone(false); };
   const active = phase >= 0;
@@ -94,7 +96,20 @@ function Player({ seq }) {
   return (
     <div style={{ marginTop: 20 }}>
       <PlayerStyle />
-      <Stage L={L} phase={phase} active={active} idx={idx} />
+
+      {/* בורר קצב-נשימה */}
+      <div style={{ display: 'flex', gap: 6, justifyContent: 'center', alignItems: 'center', marginBottom: 4 }}>
+        <span style={{ fontSize: 11, color: THEME.faint, marginInlineEnd: 4 }}>קֶצֶב הַנְּשִׁימָה</span>
+        {PACES.map((p) => (
+          <button key={p.id} onClick={() => setPaceId(p.id)} disabled={playing} style={{
+            ...pacePill,
+            borderColor: p.id === paceId ? 'rgba(255,255,255,0.5)' : 'rgba(233,230,221,0.16)',
+            color: p.id === paceId ? THEME.light : THEME.dim, opacity: playing ? 0.5 : 1,
+          }}>{p.label}</button>
+        ))}
+      </div>
+
+      <Stage L={L} phase={phase} active={active} idx={idx} T={T} />
 
       <div style={{ textAlign: 'center', marginTop: 14, minHeight: 66 }}>
         {active ? (
@@ -111,6 +126,10 @@ function Player({ seq }) {
         )}
       </div>
 
+      {!active && !done && (
+        <div style={{ maxWidth: 400, margin: '10px auto 0', fontSize: 11.5, lineHeight: 1.7, color: THEME.faint, textAlign: 'center' }}>{BREATH.note}</div>
+      )}
+
       {phase === 1 && <div style={{ textAlign: 'center', fontSize: 11, letterSpacing: 0.5, color: THEME.faint, maxWidth: 380, margin: '4px auto 0', lineHeight: 1.6 }}>{VOWELS[L.vowel].src}</div>}
 
       <div style={{ display: 'flex', gap: 10, justifyContent: 'center', marginTop: 20 }}>
@@ -124,9 +143,9 @@ function Player({ seq }) {
   );
 }
 
-function Stage({ L, phase, active, idx }) {
+function Stage({ L, phase, active, idx, T }) {
   const breathScale = phase === 0 ? 1.25 : phase === 1 ? 0.72 : 0.95;
-  const breathDur = active ? durOf(phase) : 600;
+  const breathDur = active ? [T.inhaleMs, T.chantMs, T.restMs][phase] : 600;
   return (
     <div style={{ position: 'relative', width: '100%', height: 300, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
       {/* טבעת הנשימה */}
@@ -143,7 +162,7 @@ function Stage({ L, phase, active, idx }) {
         <div key={`orb-${idx}`} style={{
           position: 'absolute', width: 16, height: 16, borderRadius: '50%',
           background: '#fff', filter: 'drop-shadow(0 0 10px #fff)',
-          animation: `hz-${L.dir} ${durOf(1)}ms ease-in-out both`,
+          animation: `hz-${L.dir} ${T.chantMs}ms ease-in-out both`,
         }} />
       )}
       {/* האות המנוקדת */}
@@ -230,6 +249,7 @@ const wrap = { minHeight: '100dvh', maxWidth: 620, margin: '0 auto', padding: '0
 const backLink = { position: 'fixed', top: '1.3rem', right: '1.3rem', zIndex: 50, color: THEME.dim, fontFamily: THEME.sans, fontSize: '0.9rem', letterSpacing: '0.08em', textDecoration: 'none', opacity: 0.75 };
 const tabs = { display: 'flex', flexWrap: 'wrap', gap: 7, justifyContent: 'center', marginTop: 22 };
 const tab = { padding: '7px 14px', borderRadius: 999, border: '1px solid', cursor: 'pointer', fontFamily: THEME.serif, fontSize: 14, transition: 'all .2s ease', backdropFilter: 'blur(4px)' };
+const pacePill = { padding: '4px 12px', borderRadius: 999, border: '1px solid', background: 'transparent', cursor: 'pointer', fontFamily: THEME.serif, fontSize: 13, transition: 'all .2s ease' };
 const card = { background: 'rgba(255,255,255,0.025)', border: '1px solid rgba(233,230,221,0.14)', borderRadius: 14, padding: '18px 20px', backdropFilter: 'blur(4px)' };
 const primaryBtn = { padding: '12px 32px', fontFamily: THEME.serif, fontSize: 16, color: THEME.light, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.35)', borderRadius: 999, cursor: 'pointer', boxShadow: '0 0 24px rgba(255,255,255,0.12)' };
 const ghostBtn = { padding: '12px 26px', fontFamily: THEME.sans, fontSize: 14, color: THEME.dim, background: 'transparent', border: '1px solid rgba(233,230,221,0.2)', borderRadius: 999, cursor: 'pointer' };
